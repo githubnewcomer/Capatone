@@ -10,20 +10,30 @@
 
 ThingerESP8266 thing(USERNAME, DEVICE_ID, DEVICE_CREDENTIAL);
 
+enum errorEnum {
+  SENSOR_VAL_FORM
+};
+int errorCode = 0;
+
 void setup() {
-  pinMode(D4, OUTPUT);
-
+  Serial.begin(9600);
   thing.add_wifi(SSID, SSID_PASSWORD);
-
-  // digital pin control example (i.e. turning on/off a light, a relay, configuring a parameter, etc)
-  thing["led"] << digitalPin(D4);
-
-  // resource output example (i.e. reading a sensor value)
-  thing["millis"] >> outputValue(millis());
-
-  // more details at http://docs.thinger.io/arduino/
+  thing["sensor"] >> outputValue(read_from_sensor());
+  thing["error"] >> outputValue(errorCode);
 }
 
 void loop() {
   thing.handle();
 }
+
+int read_from_sensor(){
+  if(Serial.available() > 0) {
+    int tempData = Serial.read();
+    if(tempData != 1 && tempData != 0){
+      errorCode = SENSOR_VAL_FORM;
+    }else{
+      return tempData;
+    }
+  }
+}
+
